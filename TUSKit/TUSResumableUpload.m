@@ -670,7 +670,9 @@ typedef void(^NSURLSessionTaskCompletionHandler)(NSData * _Nullable data, NSURLR
             [self.data stop];
             [self.delegate removeUpload:self];
             if(self.resultBlock){
-                self.resultBlock([self.uploadUrl copy]);
+                //self.resultBlock([self.uploadUrl copy]);
+                NSURL *s3URL = [[NSURL alloc] initWithString: [headers valueForKey:@"URL"]];
+                self.resultBlock(s3URL);
             }
         } else {
             TUSLog(@"Resumable upload at %@ for %@ from %lld (%@)",

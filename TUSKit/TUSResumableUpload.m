@@ -328,7 +328,7 @@ typedef void(^NSURLSessionTaskCompletionHandler)(NSData * _Nullable data, NSURLR
     
     __weak TUSResumableUpload * weakself = self;
     
-    #if TARGET_OS_IPHONE
+    #if TARGET_OS_IPHONE && !defined(TUSKIT_APP_EXTENSIONS)
     UIBackgroundTaskIdentifier bgTask = [[UIApplication sharedApplication] beginBackgroundTaskWithExpirationHandler:^{
         [weakself cancel];
     }];
@@ -406,7 +406,7 @@ typedef void(^NSURLSessionTaskCompletionHandler)(NSData * _Nullable data, NSURLR
         }
         weakself.idle = YES;
         [weakself.delegate saveUpload:weakself]; // Save current state for reloading - only save when we get a call back, not at the start of one (because this is the only time the state changes)
-        #if TARGET_OS_IPHONE
+        #if TARGET_OS_IPHONE && !defined(TUSKIT_APP_EXTENSIONS)
             [[UIApplication sharedApplication] endBackgroundTask:bgTask];
         #endif
         
@@ -447,7 +447,7 @@ typedef void(^NSURLSessionTaskCompletionHandler)(NSData * _Nullable data, NSURLR
     [request setAllHTTPHeaderFields:mutableHeader];
     
     __weak TUSResumableUpload * weakself = self;
-    #if TARGET_OS_IPHONE
+    #if TARGET_OS_IPHONE && !defined(TUSKIT_APP_EXTENSIONS)
         UIBackgroundTaskIdentifier bgTask = [[UIApplication sharedApplication] beginBackgroundTaskWithExpirationHandler:^{
         [weakself cancel];
         }];
@@ -510,7 +510,7 @@ typedef void(^NSURLSessionTaskCompletionHandler)(NSData * _Nullable data, NSURLR
         }
         weakself.idle = YES;
         [weakself.delegate saveUpload:weakself]; // Save current state for reloading - only save when we get a call back, not at the start of one (because this is the only time the state changes)
-        #if TARGET_OS_IPHONE
+        #if TARGET_OS_IPHONE && !defined(TUSKIT_APP_EXTENSIONS)
             [[UIApplication sharedApplication] endBackgroundTask:bgTask];
         #endif
         if (delayTime > 0) {
@@ -563,7 +563,7 @@ typedef void(^NSURLSessionTaskCompletionHandler)(NSData * _Nullable data, NSURLR
     }
     
     __weak TUSResumableUpload * weakself = self;
-    #if TARGET_OS_IPHONE
+    #if TARGET_OS_IPHONE && !defined(TUSKIT_APP_EXTENSIONS)
         UIBackgroundTaskIdentifier bgTask = [[UIApplication sharedApplication] beginBackgroundTaskWithExpirationHandler:^{
             [weakself cancel];
         }];
@@ -604,7 +604,7 @@ typedef void(^NSURLSessionTaskCompletionHandler)(NSData * _Nullable data, NSURLR
         }
         weakself.idle = YES;
         [weakself.delegate saveUpload:weakself]; // Save current state for reloading - only save when we get a call back, not at the start of one (because this is the only time the state changes)
-        #if TARGET_OS_IPHONE
+        #if TARGET_OS_IPHONE && !defined(TUSKIT_APP_EXTENSIONS)
             [[UIApplication sharedApplication] endBackgroundTask:bgTask];
         #endif
         [weakself continueUpload]; // Continue upload, not resume, because we do not want to continue if cancelled.

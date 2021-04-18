@@ -264,7 +264,7 @@ typedef void(^NSURLSessionTaskCompletionHandler)(NSData * _Nullable data, NSURLR
 -(void)task:(NSURLSessionTask *)task didSendBodyData:(int64_t)bytesSent totalBytesSent:(int64_t)totalBytesSent totalBytesExpectedToSend:(int64_t)totalBytesExpectedToSend{
     // When notified of upload progress by the TUSSession, send it to the progress block
     if (self.state == TUSResumableUploadStateUploadingFile && self.currentTask == task && self.progressBlock){
-        self.progressBlock(totalBytesSent + self.offset, self.length); // Report progress from current offset, which is where the upload task started.
+        self.progressBlock(totalBytesSent + self.offset, self.length, self.metadata); // Report progress from current offset, which is where the upload task started.
     }
 }
 
@@ -355,7 +355,7 @@ typedef void(^NSURLSessionTaskCompletionHandler)(NSData * _Nullable data, NSURLR
                         TUSUploadFailureBlock block = weakself.failureBlock;
                         if (block){
                             [[NSOperationQueue currentQueue] addOperationWithBlock:^{
-                                block(error);
+                                block(error, self.metadata);
                             }];
                         }
                     }
@@ -380,7 +380,7 @@ typedef void(^NSURLSessionTaskCompletionHandler)(NSData * _Nullable data, NSURLR
             if (block) {
                 NSInteger statusCode = httpResponse.statusCode;
                 [[NSOperationQueue currentQueue] addOperationWithBlock:^{
-                    block([[NSError alloc] initWithDomain:TUSErrorDomain code:TUSResumableUploadErrorServer userInfo:@{@"responseCode": @(statusCode)}]);
+                    block([[NSError alloc] initWithDomain:TUSErrorDomain code:TUSResumableUploadErrorServer userInfo:@{@"responseCode": @(statusCode)}], self.metadata);
                 }];
             }
         } else if (httpResponse.statusCode < 200 || httpResponse.statusCode > 204){
@@ -472,7 +472,7 @@ typedef void(^NSURLSessionTaskCompletionHandler)(NSData * _Nullable data, NSURLR
                         TUSUploadFailureBlock block = weakself.failureBlock;
                         if (block){
                             [[NSOperationQueue currentQueue] addOperationWithBlock:^{
-                                block(error);
+                                block(error, self.metadata);
                             }];
                         }
                     }
@@ -497,7 +497,7 @@ typedef void(^NSURLSessionTaskCompletionHandler)(NSData * _Nullable data, NSURLR
             if (block) {
                 NSInteger statusCode = httpResponse.statusCode;
                 [[NSOperationQueue currentQueue] addOperationWithBlock:^{
-                    block([[NSError alloc] initWithDomain:TUSErrorDomain code:TUSResumableUploadErrorServer userInfo:@{@"responseCode": @(statusCode)}]);
+                    block([[NSError alloc] initWithDomain:TUSErrorDomain code:TUSResumableUploadErrorServer userInfo:@{@"responseCode": @(statusCode)}], self.metadata);
                 }];
             }
         } else if (httpResponse.statusCode < 200 || httpResponse.statusCode > 204){
@@ -591,7 +591,7 @@ typedef void(^NSURLSessionTaskCompletionHandler)(NSData * _Nullable data, NSURLR
             if (block) {
                 NSInteger statusCode = httpResponse.statusCode;
                 [[NSOperationQueue currentQueue] addOperationWithBlock:^{
-                    block([[NSError alloc] initWithDomain:TUSErrorDomain code:TUSResumableUploadErrorServer userInfo:@{@"responseCode": @(statusCode)}]);
+                    block([[NSError alloc] initWithDomain:TUSErrorDomain code:TUSResumableUploadErrorServer userInfo:@{@"responseCode": @(statusCode)}], self.metadata);
                 }];
             }
         } else if (httpResponse.statusCode < 200 || httpResponse.statusCode > 204){
@@ -626,13 +626,13 @@ typedef void(^NSURLSessionTaskCompletionHandler)(NSData * _Nullable data, NSURLR
         if (serverOffset >= self.length) {
             TUSLog(@"Upload complete at %@ for id %@", self.uploadUrl, self.uploadId);
             if (self.progressBlock)
-                self.progressBlock(self.length, self.length); // If there is a progress block, report complete progress
+                self.progressBlock(self.length, self.length, self.metadata); // If there is a progress block, report complete progress
             self.state = TUSResumableUploadStateComplete;
             [self.data stop];
             [self.delegate removeUpload:self];
             if(self.resultBlock){
                 NSURL *s3URL = [[NSURL alloc] initWithString: [headers valueForKey:@"URL"]];
-                self.resultBlock(s3URL);
+                self.resultBlock(s3URL, self.metadata);
             }
         } else {
             TUSLog(@"Resumable upload at %@ for %@ from %lld (%@)",
